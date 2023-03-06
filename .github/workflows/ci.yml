@@ -25,11 +25,10 @@ jobs:
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
 
       - name: Build with Maven
-        run: mvn -B package
-        working-directory: ./plugins
+        run: mvn --batch-mode clean package --file ./plugins/pom.xml
 
       - name: Publish to GitHub Packages Apache Maven
-        run: mvn --batch-mode deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
+        run: mvn --batch-mode clean deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
         working-directory: ./plugins
         env:
           GITHUB_TOKEN: ${{ github.token }}
