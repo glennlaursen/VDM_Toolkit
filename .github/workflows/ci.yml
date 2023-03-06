@@ -1,0 +1,64 @@
+# This workflow will build, test, and deploy to GitHub Packages.
+name: Maven Package
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-java-8:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+
+      - name: Build with Maven
+        run: mvn -B package
+        working-directory: ./plugins
+
+      - name: Publish to GitHub Packages Apache Maven
+        run: mvn --batch-mode deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
+        working-directory: ./plugins
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_PACKAGES_REPO_URL: https://maven.pkg.github.com/${{ github.repository }}
+
+  build-and-deploy-java-11:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+
+      - name: Build with Maven
+        run: mvn -B package
+        working-directory: ./plugins/vdm-antlr
+
+      - name: Publish to GitHub Packages Apache Maven
+        run: mvn --batch-mode deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
+        working-directory: ./plugins/vdm-antlr
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_PACKAGES_REPO_URL: https://maven.pkg.github.com/${{ github.repository }}
