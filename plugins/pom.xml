@@ -205,6 +205,17 @@
 
 	</build>
 
+	<repositories>
+		<repository>
+			<id>vdmj.overture.au.dk-snapshots</id>
+			<name>overture.au.dk-snapshots</name>
+			<url>https://overture.au.dk/artifactory/vdmj</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 	<scm>
 		<url>https://github.com/leouk/VDM_Toolkit</url>
 		<connection>scm:git:https://github.com/leouk</connection>
