@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<parent>
 		<groupId>vdmtoolkit</groupId>
 		<artifactId>vdmtoolkit-suite</artifactId>
@@ -10,7 +10,7 @@
 	</parent>
 
 	<properties>
-		<!-- ANTLR version, which percolates to all dependent POMs -->	
+		<!-- ANTLR version, which percolates to all dependent POMs -->
 		<!--<org.antlr.antlr-version>4.11.1</org.antlr.antlr-version>-->
 		<org.antlr.antlr-version>4.9.2</org.antlr.antlr-version>
 		<!--<antlr4test-maven-plugin.version>1.22</antlr4test-maven-plugin.version> -->
@@ -39,11 +39,11 @@
 			<artifactId>vdmj</artifactId>
 			<version>${dk.au.ece.vdmj-version}</version>
 		</dependency>
-		<dependency> 
-		    <groupId>org.antlr</groupId> 
-		    <artifactId>antlr4</artifactId> 
-		    <version>${org.antlr.antlr-version}</version> 
-		</dependency> 
+		<dependency>
+		    <groupId>org.antlr</groupId>
+		    <artifactId>antlr4</artifactId>
+		    <version>${org.antlr.antlr-version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -105,7 +105,7 @@
 				<groupId>org.antlr</groupId>
 				<artifactId>antlr4-maven-plugin</artifactId>
 				<version>${org.antlr.antlr-version}</version>
-				<!-- See org.antlr.mojo.antlr4.Antlr4Mojo @Parameters for options 
+				<!-- See org.antlr.mojo.antlr4.Antlr4Mojo @Parameters for options
 					 See https://www.antlr.org/api/maven-plugin/latest/examples/simple.html for package setup
 				-->
 				<configuration>
@@ -115,7 +115,7 @@
 					</includes>
 					<visitor>true</visitor>
 					<listener>true</listener>
-					<antlr4.atn>true</antlr4.atn>
+					<atn>true</atn>
 				</configuration>
 				<executions>
 					<execution>
