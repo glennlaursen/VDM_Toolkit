@@ -23,7 +23,7 @@
 
 	<!-- sub modules -->
 	<modules>
-		<module>annotationsVDMToolkit</module>
+		<module>annotationsvdmtoolkit</module>
 		<module>vdmlib</module>
 		<module>vdm2isa</module>
 		<module>vdm2isa-lsp</module>

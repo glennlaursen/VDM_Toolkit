@@ -53,7 +53,7 @@
 		</dependency>
 		<dependency>
 			<groupId>vdmtoolkit</groupId>
-			<artifactId>annotationsVDMToolkit</artifactId>
+			<artifactId>annotationsvdmtoolkit</artifactId>
 			<version>${revision}</version>
 		</dependency>
 		<dependency> 
