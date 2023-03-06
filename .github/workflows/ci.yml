@@ -22,13 +22,14 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
+          cache: maven
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
 
       - name: Build with Maven
         run: mvn --batch-mode clean package --file ./plugins/pom.xml
 
       - name: Publish to GitHub Packages Apache Maven
-        run: mvn --batch-mode clean deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
+        run: mvn --batch-mode deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
         working-directory: ./plugins
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -49,10 +50,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+          cache: maven
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
 
       - name: Build with Maven
-        run: mvn -B package
+        run: mvn --batch-mode clean package
         working-directory: ./plugins/vdm-antlr
 
       - name: Publish to GitHub Packages Apache Maven
