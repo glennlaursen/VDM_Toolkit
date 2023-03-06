@@ -3,7 +3,7 @@
 
 	<parent>
 		<groupId>vdmtoolkit</groupId>
-		<artifactId>VDMToolkit-suite</artifactId>
+		<artifactId>vdmtoolkit-suite</artifactId>
 		<version>${revision}</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>

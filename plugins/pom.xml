@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>vdmtoolkit</groupId>
-	<artifactId>VDMToolkit-suite</artifactId>
+	<artifactId>vdmtoolkit-suite</artifactId>
 	<name>VDMToolkit Suite</name>
 	<packaging>pom</packaging>
 	<!-- This version is inherited by all modules -->
@@ -23,7 +23,7 @@
 
 	<!-- sub modules -->
 	<modules>
-		<module>annotationsVDMToolkit</module>
+		<module>annotationsvdmtoolkit</module>
 		<module>vdmlib</module>
 		<module>vdm2isa</module>
 		<module>vdm2isa-lsp</module>
