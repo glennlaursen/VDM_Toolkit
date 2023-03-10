@@ -36,7 +36,7 @@ jobs:
           GITHUB_PACKAGES_REPO_URL: https://maven.pkg.github.com/${{ github.repository }}
 
   build-and-deploy-java-11:
-
+    if: ${{ false }} //Disable
     runs-on: ubuntu-latest
     permissions:
       contents: read
