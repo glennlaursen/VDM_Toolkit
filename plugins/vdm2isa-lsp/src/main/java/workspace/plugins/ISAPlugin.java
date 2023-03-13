@@ -1,27 +1,3 @@
-/*******************************************************************************
- *
- *	Copyright (c) 2020 Nick Battle.
- *
- *	Author: Nick Battle
- *
- *	This file is part of VDMJ.
- *
- *	VDMJ is free software: you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation, either version 3 of the License, or
- *	(at your option) any later version.
- *
- *	VDMJ is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
- *
- *	You should have received a copy of the GNU General Public License
- *	along with VDMJ.  If not, see <http://www.gnu.org/licenses/>.
- *	SPDX-License-Identifier: GPL-3.0-or-later
- *
- ******************************************************************************/
-
 package workspace.plugins;
 
 import java.io.PrintWriter;
@@ -132,13 +108,15 @@ public abstract class ISAPlugin extends AnalysisPlugin implements EventListener
 		}
 		else if (event instanceof CheckCompleteEvent)
 		{
+			//@NB how  to set properties at this point? 
 			long before = System.currentTimeMillis();
 			CheckCompleteEvent ev = (CheckCompleteEvent)event;
+			if (ev.request != null) 
+				setProperties(ev.request);
+			//IsaProperties.exu_linient_inv_check = false;
 			IsaTemplates.reset();
-			// TCPlugin tcp = registry.getPlugin("TC");
-			// TCModuleList mlist = tcp.getTC();
-			this.isapog = new IsapogCommand("isapog");//new IsapogPlugin(mlist);
-			boolean pluginResult = true; 
+			this.isapog = IsapogCommand.getInstance("isapog", registry);
+			boolean pluginResult = true; 			
 			if (IsaProperties.vdm2isa_run_exu)
 			{
 				pluginResult = this.isapog.translate.exu.run(new String[] { "exu", "check", "sort" });

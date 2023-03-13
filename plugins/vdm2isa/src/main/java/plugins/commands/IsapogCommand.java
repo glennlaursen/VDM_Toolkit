@@ -11,8 +11,6 @@ import com.fujitsu.vdmj.mapper.ClassMapper;
 import com.fujitsu.vdmj.messages.InternalException;
 import com.fujitsu.vdmj.messages.VDMErrorsException;
 import com.fujitsu.vdmj.plugins.PluginConsole;
-import com.fujitsu.vdmj.plugins.PluginRegistry;
-import com.fujitsu.vdmj.plugins.analyses.POPlugin;
 import com.fujitsu.vdmj.pog.ProofObligation;
 import com.fujitsu.vdmj.pog.ProofObligationList;
 import com.fujitsu.vdmj.syntax.ParserException;
@@ -47,8 +45,13 @@ public class IsapogCommand extends IsabelleCommand {
     private static IsapogCommand INSTANCE = null; 
     private static final String USAGE = "isapog - translate VDM pog results for Isabelle/HOL (v. " + IsaProperties.general_isa_version + ")"; 
 
-    
-    public static synchronized final IsapogCommand getInstance(String line)
+    //@NB does this need to also be synchronized? No? 
+    public static final IsapogCommand getInstance(String line)
+    {
+        return getInstance(line, null);
+    }
+
+    public static synchronized final IsapogCommand getInstance(String line, workspace.PluginRegistry lspR)
     {
         if (INSTANCE == null)
         {
@@ -58,15 +61,25 @@ public class IsapogCommand extends IsabelleCommand {
         {
             INSTANCE.setArguments(Utils.toArgv(line));
         }
+        // ensure the source registry is updated for LSP
+        if (lspR != null) 
+            INSTANCE.setLSPRegistry(lspR);
         return INSTANCE; 
     }
 
-    public IsapogCommand(String line) {
+    private IsapogCommand(String line) {
         super(line);
          // consider extending?
         translate = TranslateCommand.getInstance("vdm2isa");
     }
     
+    @Override
+	protected void setLSPRegistry(workspace.PluginRegistry lspR)
+	{
+		super.setLSPRegistry(lspR);
+		this.translate.setLSPRegistry(lspR);
+	}
+
     @Override 
      protected String getMinimalUsage()
      {
@@ -153,6 +166,38 @@ public class IsapogCommand extends IsabelleCommand {
         return result; 
     }
 
+    protected ProofObligationList getPOList()
+    {
+        ProofObligationList result; 
+        if (calledFromLSP())
+        {
+            workspace.plugins.POPlugin plugin = getPlugin("PO", workspace.plugins.POPlugin.class);
+            if (plugin == null)
+            {
+                IsabelleCommand.report(IsaErrorMessage.PLUGIN_INVALID_PLUGIN_REGISTRY_1P, LexLocation.ANY, "POPlugin");
+                result = new ProofObligationList();
+            }
+            else
+            {
+                result = plugin.getProofObligations();
+            }
+        }
+        else 
+        {
+            com.fujitsu.vdmj.plugins.analyses.POPlugin plugin = getPlugin("PO", com.fujitsu.vdmj.plugins.analyses.POPlugin.class);
+            if (plugin == null)
+            {
+                IsabelleCommand.report(IsaErrorMessage.PLUGIN_INVALID_PLUGIN_REGISTRY_1P, LexLocation.ANY, "TCPlugin");
+                result = new ProofObligationList();
+            }
+            else
+            {
+                result = plugin.getProofObligations();
+            }
+        }
+        return result;
+    }
+
     protected boolean doTranslate(TCModuleList tclist)
     {
         String workingAt = "";
@@ -163,13 +208,12 @@ public class IsapogCommand extends IsabelleCommand {
         {
             // create an isabelle module interpreter 
             workingAt = "creating filtered interpreter";
-            POPlugin pop = PluginRegistry.getInstance().getPlugin("PO");
             Set<String> moduleNames = getModuleNames(tclist);
 
             // get the POG and create a corresponding TRModuleList with its PO definitions 
             workingAt = "getting isa interpreter PO list";
 
-            ProofObligationList pogl = pop.getProofObligations();
+            ProofObligationList pogl = getPOList();
             IsaProofObligationList isapogl = new IsaProofObligationList();
             int poNumber = 1;
             List<Pair<ProofObligation, Exception>> notTranslatedPOS = new Vector<Pair<ProofObligation, Exception>>();

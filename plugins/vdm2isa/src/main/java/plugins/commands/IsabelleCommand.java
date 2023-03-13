@@ -30,7 +30,6 @@ import com.fujitsu.vdmj.messages.VDMWarning;
 import com.fujitsu.vdmj.plugins.AnalysisCommand;
 import com.fujitsu.vdmj.plugins.PluginConsole;
 import com.fujitsu.vdmj.plugins.VDMJ;
-import com.fujitsu.vdmj.plugins.analyses.TCPlugin;
 import com.fujitsu.vdmj.tc.modules.TCModule;
 import com.fujitsu.vdmj.tc.modules.TCModuleList;
 import com.fujitsu.vdmj.util.Utils;
@@ -69,12 +68,14 @@ public abstract class IsabelleCommand extends AnalysisCommand {
     public static final void main(String args[])
     {
 		VDMJ.main(new String[] {"-vdmsl", "-strict", "-annotations", "-i"//, "-verbose" 
+            ,"/Users/nljsf/Local/reps/git/VDM_Toolkit/experiments/vdm/Chesss/SL"
+            , "/Users/nljsf/Local/reps/git/VDM_Toolkit/experiments/vdm/Chesss/SL/lib"
             //  ,"./fmi3/rule-model" 
             //  ,"./fmi3/rule-model/Rules"
             //  ,"./fmi3/rule-model/Tests"
             //, "./lvl0"
             //    ,"./lvl0/TestV2IEmpty.vdmsl"
-                ,"./lvl0/TestV2IExprs.vdmsl"
+            //    ,"./lvl0/TestV2IExprs.vdmsl"
             //    ,"./lvl0/TestV2IUseBeforeDecl.vdmsl"
             //    ,"./lvl0/TestV2IDeclBeforeUse.vdmsl"
             //    ,"./lvl0/TestV2IFcns.vdmsl"
@@ -147,6 +148,7 @@ public abstract class IsabelleCommand extends AnalysisCommand {
     protected final List<String> arguments;
     protected File saveURI; 
     protected final Map<String, Long> timings;
+    private workspace.PluginRegistry lspRegistry;
 
     protected IsabelleCommand(String line) {
         super(line);
@@ -163,11 +165,46 @@ public abstract class IsabelleCommand extends AnalysisCommand {
 //        this.saveURI = ResourceUtil.defaultSaveURI(ResourceUtil.getParentFile(getTC()));
         this.timings = new TreeMap<String, Long>(); 
         this.called = 0;
+        this.lspRegistry = null;
         created++;
         this.localReset();
         setArguments(Utils.toArgv(line));
     }
 
+    protected void setLSPRegistry(workspace.PluginRegistry lspR)
+    {
+        if (lspR == null || lspR.getPlugin("TC") == null)
+        {
+            IsabelleCommand.report(IsaErrorMessage.PLUGIN_INVALID_PLUGIN_REGISTRY_1P, LexLocation.ANY, "TCPlugin");
+            throw new IllegalArgumentException("Invalid LSP plugin registry. Could not find TC plugin for source modules list.");
+        }
+        this.lspRegistry = lspR;
+        // mildly repeated set but needed for when creating within LSP x VDMJ 
+        setTCModules(getTC());
+    }
+
+    protected <T> T getPlugin(String name, Class<T> target)
+    {
+        T result; 
+        // if LSP is present expect a workspace.plugins.AnalysisPlugin
+        if (this.lspRegistry != null)
+        {
+            result = lspRegistry.getPlugin(name);
+        }
+        // otherwise expect a com.fujitsu.vdmj.plugins.AnalysisPlugin
+        else 
+        {
+            result = this.registry.getPlugin(name);
+        }
+        return result;
+    }
+
+    public void setTCModules(TCModuleList mlist)
+    {
+        tclist.clear();
+        tclist.addAll(mlist);
+    }
+    
     protected abstract String getMinimalUsage();
 
     protected void localReset()
@@ -184,8 +221,7 @@ public abstract class IsabelleCommand extends AnalysisCommand {
 
         timings.clear();
 
-        tclist.clear();
-        tclist.addAll(getTC());
+        setTCModules(getTC());
 
         arguments.clear();
     }
@@ -202,36 +238,44 @@ public abstract class IsabelleCommand extends AnalysisCommand {
         return VDMJ.getMainName().equals(VDMJMain.VDMJ_MAIN); 
     } 
 
+    protected final boolean calledFromLSP()
+    {
+        return lspRegistry != null;
+    }
+
+    /**
+     * Convoluted but works? 
+     * @return
+     */
     protected TCModuleList getTC()
     {
         TCModuleList result = null; 
-        TCPlugin plugin = ((TCPlugin)registry.getPlugin("TC"));
-        if (plugin == null)
+        if (calledFromLSP())
         {
-            // VDMJ.loadPlugins();
-            // plugin = ((TCPlugin)registry.getPlugin("TC"));
-            IsabelleCommand.report(IsaErrorMessage.PLUGIN_INVALID_PLUGIN_REGISTRY_1P, LexLocation.ANY, "TCPlugin");
-            // if (plugin == null)
-            // {
-            //     try
-            //     {
-            //         plugin = TCPlugin.factory(Settings.dialect);
-            //         registry.registerPlugin(plugin);
-            //     }
-            //     catch (Exception e)
-            //     {
-            //         throw new RuntimeException(e);
-            //     }
-            // }
-            // if (plugin == null)
-            //     throw new IllegalArgumentException("Plugin registry in trouble? " + registry.getPlugins().toString());
-            // else 
-            //     result = plugin.getTC();
+            workspace.plugins.TCPlugin plugin = getPlugin("TC", workspace.plugins.TCPlugin.class);
+            if (plugin == null)
+            {
+                IsabelleCommand.report(IsaErrorMessage.PLUGIN_INVALID_PLUGIN_REGISTRY_1P, LexLocation.ANY, "TCPlugin");
+                result = new TCModuleList();
+            }
+            else
+            {
+                result = plugin.getTC();
+            }
         }
-        else
-            result = plugin.getTC();
-        if (result == null)
-            result = new TCModuleList();
+        else 
+        {
+            com.fujitsu.vdmj.plugins.analyses.TCPlugin plugin = getPlugin("TC", com.fujitsu.vdmj.plugins.analyses.TCPlugin.class);
+            if (plugin == null)
+            {
+                IsabelleCommand.report(IsaErrorMessage.PLUGIN_INVALID_PLUGIN_REGISTRY_1P, LexLocation.ANY, "TCPlugin");
+                result = new TCModuleList();
+            }
+            else
+            {
+                result = plugin.getTC();
+            }
+        }
         return result;
     }
 
@@ -763,11 +807,15 @@ public abstract class IsabelleCommand extends AnalysisCommand {
         {
             TCModule m = mi.next();
             String name = m.name.toString();
-            if (name.equals(IsaToken.VDMTOOLKIT.toString()) || 
-               (!modules.isEmpty() && !modules.contains(name)))
-            {
+            // remove if toolkit
+            if (name.equals(IsaToken.VDMTOOLKIT.toString())) 
                 mi.remove();
-            }
+            // continue if empty
+            else if (modules.isEmpty())
+                continue;
+            // if not toolkit neither empty, remove if not within modules to process
+            else if (!modules.contains(name))
+                mi.remove();
         } 
         return result;
     } 

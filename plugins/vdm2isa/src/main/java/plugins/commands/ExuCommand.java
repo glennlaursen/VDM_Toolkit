@@ -31,16 +31,13 @@ public class ExuCommand extends IsabelleCommand {
     private static ExuCommand INSTANCE = null;
     private static final String USAGE = "exu - it analyses loaded VDM modules for Isabelle/HOL  (v. " + IsaProperties.general_isa_version + ") translation"; 
 
-    // public static final ExuPlugin getInstance(Interpreter interpreter)
-    // {
-    //     if (INSTANCE == null)
-    //     {
-    //         INSTANCE = new ExuPlugin(interpreter);
-    //     }
-    //     return INSTANCE; 
-    // }
+    //@NB does this need to also be synchronized? No? 
+    public static final ExuCommand getInstance(String line)
+    {
+        return getInstance(line, null);
+    }
 
-    public static synchronized final ExuCommand getInstance(String line)
+    public static synchronized final ExuCommand getInstance(String line, workspace.PluginRegistry lspR)
     {
         if (INSTANCE == null)
         {
@@ -50,10 +47,13 @@ public class ExuCommand extends IsabelleCommand {
         {
             INSTANCE.setArguments(Utils.toArgv(line));
         }
+        // ensure the source registry is updated for LSP
+        if (lspR != null) 
+            INSTANCE.setLSPRegistry(lspR);
         return INSTANCE; 
     }
 
-    public ExuCommand(String line) {
+    private ExuCommand(String line) {
         super(line);
         if (!argv[0].equals(isabelleCommandName()))
 		{
