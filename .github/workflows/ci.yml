@@ -10,7 +10,7 @@ jobs:
   build-and-deploy-java-8:
     runs-on: ubuntu-latest
     permissions:
-      contents: contents
+      contents: write
       packages: write
 
     steps:
