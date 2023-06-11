@@ -1,4 +1,4 @@
-# This workflow will build, test, and deploy to GitHub Packages.
+# This workflow will build, test, and deploy to GitHub Packages. 
 name: Maven Package
 
 on:
